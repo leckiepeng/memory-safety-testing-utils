@@ -6,14 +6,17 @@ namespace {
   long long LoadChecks, StoreChecks;
   long long FastLoadChecks, FastStoreChecks;
   long long FastLoadFailures, FastStoreFailures;
+  long long GlobalRegistrations, StackRegistrations;
 
-  void printLoadStoreSummary(FILE *F) {
+  void printSummary(FILE *F) {
     long long GenericChecks = LoadChecks + StoreChecks;
     long long FastChecks = FastLoadChecks + FastStoreChecks;
     long long FastFailureCalls = FastLoadFailures + FastStoreFailures;
-    long long Sum = GenericChecks + FastChecks + FastFailureCalls;
+    long long MemoryRegistrations = GlobalRegistrations + StackRegistrations;
+    long long Sum = GenericChecks + FastChecks + FastFailureCalls
+                  + MemoryRegistrations;
 
-    fprintf(F, "Runtime Load/Store Check Counter report: %lld checks called\n",
+    fprintf(F, "Runtime Memory Safety Call Counter report: %lld calls\n",
             Sum);
     if (!Sum)
       return;
@@ -40,15 +43,26 @@ namespace {
       fprintf(F, "  %lld fast store check failures reported\n",
               FastStoreFailures);
     }
+
+    fprintf(F, "%lld memory registration calls (%d%%)\n",
+            MemoryRegistrations, int(100 * MemoryRegistrations / Sum));
+    if (MemoryRegistrations) {
+      fprintf(F, "  %lld global registration calls\n",
+              GlobalRegistrations);
+      fprintf(F, "  %lld stack registration calls\n",
+              StackRegistrations);
+    }
+
+    fprintf(F, "\n");
   }
 
   void printReport() {
     if (const char *path = getenv("RTCC_PATH")) {
       FILE *F = fopen(path, "w");
-      printLoadStoreSummary(F);
+      printSummary(F);
       fclose(F);
     } else {
-      printLoadStoreSummary(stderr);
+      printSummary(stderr);
     }
   }
 
@@ -84,5 +98,17 @@ extern "C" {
   void __fail_faststorecheck(void *ptr, size_t size, void *obj, size_t obj_size) {
     ++FastStoreFailures;
     exit(1);
+  }
+
+  void __pool_register_global(void *ptr, size_t size) {
+    ++GlobalRegistrations;
+  }
+
+  void __pool_register_stack(void *ptr, size_t size) {
+    ++StackRegistrations;
+  }
+
+  void __pool_unregister_stack(void *ptr) {
+    // ignore for now
   }
 }
