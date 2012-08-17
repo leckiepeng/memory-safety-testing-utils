@@ -1,10 +1,9 @@
 import multiprocessing
 import subprocess
+import optparse
 import time
 import sys
 import os
-
-from optparse import OptionParser
 
 CFLAGS = '-O2 -std=gnu89 -fmemory-access-instrumentation'
 CFLAGS += ' ' + os.getcwd() + '/rtccounter/librtccounter.a'
@@ -15,6 +14,17 @@ PROCESSORS = multiprocessing.cpu_count()
 TEMP_DIR = os.getcwd() + '/test-spec-temp'
 OPTIMIZATIONS = ['opt1', 'opt2', 'opt3']
 #OPTIMIZATIONS = ['optimize-fast-memory-checks', 'optimize-identical-ls-checks', 'optimize-implied-fast-ls-checks']
+
+USAGE = 'usage: %prog [options] SPEC_PATH CLANG_BIN_DIR'
+DESCRIPTION = 'The easy way to get both compile-time and run-time statistics is as follows:\n' + \
+              '* Build LLVM/Clang as usual\n' + \
+              '* Run this script with -iO\n' + \
+              '* Open clang/lib/CodeGen/BackendUtil.cpp\n' + \
+              '* Find the addMemoryAccessInstrumentationPasses function\n' + \
+              '* Comment out the optimization pass creation (currently createOptimize*)\n' + \
+              '* Rebuild the modified LLVM/Clang\n' + \
+              '* Run this script with -if\n' + \
+              '* Reverse any changes in BackendUtil.cpp\n'
 
 class WorkerProcess(multiprocessing.Process):
   def __init__(self, name, Q, execute, prefix, use_old, spec_path, clang_bin_dir):
@@ -111,8 +121,12 @@ def find_spec_names(path):
     res.append(entry)
   return sorted(res)
 
+class MyOptionParser(optparse.OptionParser):
+  def format_description(self, formatter):
+    return self.description
+
 if __name__ == '__main__':
-  parser = OptionParser(usage="usage: %prog [options] SPEC_PATH CLANG_BIN_DIR")
+  parser = MyOptionParser(usage=USAGE, description=DESCRIPTION)
   parser.add_option("-O", "--opt", action="store_true", dest="opt", default=False,
                     help="Using optimizing build")
   parser.add_option("-i", "--ignore-old", action="store_false", dest="use_old", default=True,
