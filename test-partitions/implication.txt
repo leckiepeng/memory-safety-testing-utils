@@ -1,0 +1,34 @@
+This is a partitioning of possible load/store checks that tries to show
+possible complications about removing checks where a check can be removed
+because its failure is implied by another.
+
+1. index problem 
+1.1. none
+1.2. off in the same direction
+1.3. off in different directions
+
+2. allocation problem
+2.1. none
+2.2. first check on a possibly freed object
+2.3. last check on a possibly freed object
+2.4. both checks on a possibly freed object
+
+3. boundary expression type
+3.1. constant
+3.2. simple expression (which limitations apply?)
+3.3. unknown
+3.4. anything else
+
+4. number of memory object sets
+4.1. one
+4.2. two
+
+5. CFG structure
+5.1. same basic block
+5.2. single connecting path
+5.3. multiple connecting paths
+
+6. loop structure
+6.1. none
+6.2. checks in the same loop
+6.3. checks in different loops / one not in a loop

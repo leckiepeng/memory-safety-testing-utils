@@ -1,0 +1,48 @@
+This is a partitioning of possible complications when trying to convert regular
+load/store checks into fast load/store checks.
+
+1. allocation type
+1.1. regular stack
+1.2. scoped alloca
+1.3. global
+1.4. heap
+1.5. mixed
+1.6. unknown
+
+2. allocation problem
+2.1. none
+2.2. possibly freed
+2.3. possible to override global variable's size
+
+3. object size type
+3.1. constant
+3.2. variable
+3.3. unknown
+
+4. number of objects
+4.1. single object
+4.2. multiple objects
+
+5. number of object types
+5.1. one type
+5.2. two or more types
+
+6. number of object sizes
+6.1. one size
+6.2. two or more sizes
+
+7. reason for multiple objects
+7.1. N/A: one object
+7.2. select
+7.3. phi
+7.4. mixed
+
+8. loop structure
+8.1. none
+8.2. single loop
+8.3. multiple loops
+
+9. CFG structure
+9.1. same basic block
+9.2. single connecting path
+9.3. multiple connecting paths
