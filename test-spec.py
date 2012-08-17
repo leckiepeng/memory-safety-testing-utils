@@ -7,7 +7,8 @@ import os
 from optparse import OptionParser
 
 CFLAGS = '-O2 -std=gnu89 -fmemory-access-instrumentation'
-CFLAGS += ' ' + os.getcwd() + '/rtccounter/librtccounter.a'  
+CFLAGS += ' ' + os.getcwd() + '/rtccounter/librtccounter.a'
+CXXFLAGS = CFLAGS
 PYTHON = sys.executable
 COMBINE_MSCC_PATH = 'combine-mscc-reports.py'
 PROCESSORS = multiprocessing.cpu_count()
@@ -41,7 +42,12 @@ class WorkerProcess(multiprocessing.Process):
 
     try:
       clang_bin = self.clang_bin_dir + '/clang'
-      subprocess.check_call(['make', 'CC=' + clang_bin, 'CFLAGS=' + CFLAGS], stderr=subprocess.STDOUT, stdout=open(out_path, 'w'), cwd=src_path)
+      args = ['make']
+      args.append('CC=' + self.clang_bin_dir + '/clang')
+      args.append('CXX=' + self.clang_bin_dir + '/clang++')
+      args.append('CFLAGS=' + CFLAGS)
+      args.append('CXXFLAGS=' + CXXFLAGS)
+      subprocess.check_call(args, stderr=subprocess.STDOUT, stdout=open(out_path, 'w'), cwd=src_path)
       if self.execute:
         subprocess.check_call([init_path + 'run.sh'], stderr=open(out_path, 'a'), stdout=subprocess.PIPE, shell=True, cwd=init_path)
 
@@ -118,6 +124,10 @@ if __name__ == '__main__':
   parser.add_option("-v", "--verbose", action="store_true", dest="verbose", default=False,
                     help="Show verbose output")
   (options, args) = parser.parse_args()
+  if len(args) < 2:
+    parser.print_help()
+    exit()
+
   prefix = 'opt-' if options.opt else 'unopt-'
   spec_path = args[0]
   clang_bin_dir = args[1]
@@ -126,6 +136,7 @@ if __name__ == '__main__':
   #names = ['401.bzip2', '429.mcf', '433.milc', '456.hmmer', '458.sjeng', '462.libquantum', '470.lbm']
   #names = ['470.lbm', '462.libquantum']
   #names = ['470.lbm']
+  #names = ['429.mcf']
 
   action = 'Compiling' if not options.execute else 'Compiling and running'
   sys.stderr.write('%s the following:\n' % action)
