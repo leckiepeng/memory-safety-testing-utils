@@ -12,19 +12,26 @@ PYTHON = sys.executable
 COMBINE_MSCC_PATH = 'combine-mscc-reports.py'
 PROCESSORS = multiprocessing.cpu_count()
 TEMP_DIR = os.getcwd() + '/test-spec-temp'
+
+# General benchmarking (Mode AllOff or AllNewOn)
 OPTIMIZATIONS = ['opt1', 'opt2', 'opt3']
-#OPTIMIZATIONS = ['optimize-fast-memory-checks', 'optimize-identical-ls-checks', 'optimize-implied-fast-ls-checks']
+LAST_HEADERS = ['num optimized total', 'run-time checks before opt', 'run-time checks avoided']
+
+# Comparison with ASan (Mode ASanOnly or ASanComparison)
+#OPTIMIZATIONS = ['ASan (incl. opt2)', 'opt1', 'opt3']
+#LAST_HEADERS = ['num optimized total', 'run-time checks with ASan', 'extra run-time checks avoided']
 
 USAGE = 'usage: %prog [options] SPEC_PATH CLANG_BIN_DIR'
 DESCRIPTION = 'The easy way to get both compile-time and run-time statistics is as follows:\n' + \
+              '* Build rtccounter (included in this repository)\n' + \
               '* Build LLVM/Clang as usual\n' + \
-              '* Run this script with -iO\n' + \
+              '* Run this script with -O\n' + \
               '* Open clang/lib/CodeGen/BackendUtil.cpp\n' + \
               '* Find the addMemoryAccessInstrumentationPasses function\n' + \
-              '* Comment out the optimization pass creation (currently createOptimize*)\n' + \
+              '* Set the Mode variable to AllOff.\n' + \
               '* Rebuild the modified LLVM/Clang\n' + \
-              '* Run this script with -if\n' + \
-              '* Reverse any changes in BackendUtil.cpp\n'
+              '* Run this script with -f\n' + \
+              '* Revert any changes in BackendUtil.cpp\n'
 
 class WorkerProcess(multiprocessing.Process):
   def __init__(self, name, Q, execute, prefix, use_old, spec_path, clang_bin_dir):
@@ -90,7 +97,7 @@ def generate_final(names, unopt_prefix, opt_prefix, both_prefix):
   header = ['bench', 'num loads/stores']
   for opt in OPTIMIZATIONS:
     header.append('num optimized by ' + opt)
-  header.extend(['num optimized total', 'run-time checks before opt', 'run-time checks avoided'])
+  header.extend(LAST_HEADERS)
   info[0] = header
 
   lengths = []
@@ -129,14 +136,14 @@ if __name__ == '__main__':
   parser = MyOptionParser(usage=USAGE, description=DESCRIPTION)
   parser.add_option("-O", "--opt", action="store_true", dest="opt", default=False,
                     help="Using optimizing build")
-  parser.add_option("-i", "--ignore-old", action="store_false", dest="use_old", default=True,
-                    help="Ignore old result files")
+  parser.add_option("-r", "--reuse", action="store_true", dest="use_old", default=False,
+                    help="Reuse old result files")
   parser.add_option("-c", "--no-execute", action="store_false", dest="execute", default=True,
                     help="Just compile without executing")
   parser.add_option("-f", "--final", action="store_true", dest="final", default=False,
                     help="Generate final output")
   parser.add_option("-v", "--verbose", action="store_true", dest="verbose", default=False,
-                    help="Show verbose output")
+                    help="Verbose output")
   (options, args) = parser.parse_args()
   if len(args) < 2:
     parser.print_help()
