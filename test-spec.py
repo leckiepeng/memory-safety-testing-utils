@@ -18,7 +18,7 @@ OPTIMIZATIONS = ['opt1', 'opt2', 'opt3']
 LAST_HEADERS = ['num optimized total', 'run-time checks before opt', 'run-time checks avoided']
 
 # Comparison with ASan (Mode ASanOnly or ASanComparison)
-#OPTIMIZATIONS = ['ASan (incl. opt2)', 'opt1', 'opt3']
+#OPTIMIZATIONS = ['opt0', 'opt2', 'opt1', 'opt3']
 #LAST_HEADERS = ['num optimized total', 'run-time checks with ASan', 'extra run-time checks avoided']
 
 USAGE = 'usage: %prog [options] SPEC_PATH CLANG_BIN_DIR'

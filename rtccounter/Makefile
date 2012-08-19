@@ -1,5 +1,5 @@
 AR       = ar
-CXX      = clang++
+CXX      = g++
 CXXFLAGS = -O2
 
 SRC = RuntimeCheckCounter.cpp
